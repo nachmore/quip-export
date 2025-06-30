@@ -151,6 +151,7 @@ class App {
 
         if(!await quipService.checkUser()) {
             console.log(colors.red('ERROR: Token is wrong or expired.'));
+            console.log(colors.blue(`Visit: https://${this.cliArguments['base-url']}/dev/token to generate a token.`));
             return;
         }
 
