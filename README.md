@@ -1,3 +1,10 @@
+## Fork of https://github.com/sonnenkern/quip-export
+
+This adds support for custom Quip URLs so that you can export from something like `quip-acme.com` instead of just `quip.com`.
+
+
+---
+
 # Quip-Export
 Comprehensive full automated export (backup) tool for [Quip](https://quip.com/).
 

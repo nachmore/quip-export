@@ -15,3 +15,7 @@
 *.iml
 npm-debug.log
 http-client.private.env.json
+
+/export
+/quip-export
+export.log

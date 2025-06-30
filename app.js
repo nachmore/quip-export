@@ -146,7 +146,7 @@ class App {
         }
 
         //Token verification
-        const quipService = new QuipService(this.cliArguments.token);
+        const quipService = new QuipService(this.cliArguments.token, this.cliArguments['base-url']);
         quipService.setLogger(this.Logger);
 
         if(!await quipService.checkUser()) {
@@ -168,7 +168,7 @@ class App {
                 embeddedImages: this.cliArguments['embedded-images'],
                 comments: this.cliArguments['comments'],
                 docx: this.cliArguments['docx']
-            });
+            }, this.cliArguments['base-url']);
 
         this.quipProcessor.setLogger(this.Logger);
 
