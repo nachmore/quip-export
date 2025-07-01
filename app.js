@@ -28,7 +28,7 @@ class App {
         this.quipProcessor;
         this.spinnerIndicator = new Spinner(' %s  read 0 folder(s) | 0 thread(s)');
         this.progressIndicator = new cliProgress.Bar({
-            format: '   |{bar}| {percentage}% | {value}/{total} threads | ETA: {eta_formatted}',
+            format: '   {lastLog}\n|{bar}| {percentage}% | {value}/{total} threads | ETA: {eta_formatted}',
             barCompleteChar: '\u2588',
             barIncompleteChar: '\u2591',
             hideCursor: false
@@ -56,14 +56,26 @@ class App {
     }
 
     /*
+    callback-function to show the last log message on the cli
+    */
+    printLogMessage(log) {
+        this.progressFunc(null, log);
+    }
+
+    /*
     callback-function for progress indication
     */
-    progressFunc(progress) {
+    progressFunc(progress, lastLog = '') {
         if(this.phase === 'ANALYSIS') {
-            this.spinnerIndicator.text = ` %s  read ${progress.readFolders} folder(s) | ${progress.readThreads} thread(s)`;
+            this.spinnerIndicator.text = ` ${lastLog}\n %s  read ${progress.readFolders} folder(s) | ${progress.readThreads} thread(s)`;
         }
         else if(this.phase === 'EXPORT') {
-            this.progressIndicator.update(progress.threadsProcessed);
+            this.progressIndicator.update(
+                progress ? progress.threadsProcessed : null,
+                {
+                    lastLog: lastLog
+                }
+            );
         }
     }
 
@@ -130,9 +142,15 @@ class App {
         this.desinationFolder = (this.cliArguments.destination || process.cwd());
 
         if(this.cliArguments.debug) {
-            this.Logger = new PinoLogger(PinoLogger.LEVELS.DEBUG, `${this.desinationFolder}/export.log`);
+            this.Logger = new PinoLogger(
+                PinoLogger.LEVELS.DEBUG,
+                `${this.desinationFolder}/export.log`,
+                this.printLogMessage.bind(this));
         } else {
-            this.Logger = new PinoLogger(PinoLogger.LEVELS.INFO, `${this.desinationFolder}/export.log`);
+            this.Logger = new PinoLogger(
+                PinoLogger.LEVELS.INFO,
+                `${this.desinationFolder}/export.log`,
+                this.printLogMessage.bind(this));
         }
 
         console.log(`Quip-Export v${versionInfo.localVersion}`);
