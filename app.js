@@ -1,4 +1,4 @@
-const path =  require('path');
+const path = require('path');
 const Spinner = require('cli-spinner').Spinner;
 const colors = require('colors');
 const cliProgress = require('cli-progress');
@@ -9,9 +9,9 @@ const readline = require('readline');
 
 //PinoLogger implements LoggerAdapter-Interface
 //It is possible to use another logger instead of PinoLogger
-const PinoLogger =  require('./lib/common/PinoLogger');
-const QuipProcessor =  require('./lib/QuipProcessor');
-const QuipService =  require('./lib/QuipService');
+const PinoLogger = require('./lib/common/PinoLogger');
+const QuipProcessor = require('./lib/QuipProcessor');
+const QuipService = require('./lib/QuipService');
 const utils = require('./lib/common/utils');
 const CliArguments = require('./lib/cli/CliArguments');
 
@@ -41,14 +41,14 @@ class App {
     callback-function for file saving
     */
     fileSaver(data, fileName, type, filePath) {
-        if(type === 'BLOB') {
-            if(this.cliArguments.zip) {
+        if (type === 'BLOB') {
+            if (this.cliArguments.zip) {
                 this.zip.folder(filePath).file(fileName, data.arrayBuffer());
             } else {
                 utils.writeBlobFile(path.join(this.desinationFolder, "quip-export", filePath, fileName), data);
             }
         } else {
-            if(this.cliArguments.zip) {
+            if (this.cliArguments.zip) {
                 this.zip.folder(filePath).file(fileName, data);
             } else {
                 utils.writeTextFile(path.join(this.desinationFolder, "quip-export", filePath, fileName), data);
@@ -65,29 +65,49 @@ class App {
 
     _lastLog = '';
 
+    trunacteLog(str) {
+        // -2 for a bit of margin
+        const maxLength = (process.stdout.columns || 80) - 2;
+
+        if (str.length <= maxLength)
+            return str;
+
+        const half = Math.floor((maxLength - 3) / 2);
+
+        return str.slice(0, half) + '...' + str.slice(str.length - half);
+    }
+
     /*
     callback-function for progress indication
     */
     progressFunc(progress, lastLog = null) {
-        if(this.phase === 'ANALYSIS') {
+
+        // only print progress if we're in a progress status (otherwise log messages
+        // just get spewed everywhere)
+        if (this.phase !== 'ANALYSIS' && this.phase !== 'EXPORT') {
+            return;
+        }
+
+        if (!lastLog) {
+            lastLog = this._lastLog;
+        } else {
+            const now = new Date();
+            const timeHM = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+            lastLog = this._lastLog = this.trunacteLog(timeHM + ' ' + lastLog);
+        }
+
+        // cli-progress and spinner don't actually support newlines in the status,
+        // so instead do shenanigans to move the cursor, print the last log line
+        // and then the progress bar
+        readline.moveCursor(process.stdout, 0, -1);
+        readline.clearLine(process.stdout, 0);
+        process.stdout.write(lastLog + '\n');
+        readline.moveCursor(process.stdout, 0, 1)
+
+        if (this.phase === 'ANALYSIS' && progress) {
             this.spinnerIndicator.text = ` %s  read ${progress.readFolders} folder(s) | ${progress.readThreads} thread(s)`;
         }
-        else if(this.phase === 'EXPORT') {
-
-            if (!lastLog) {
-                lastLog = this._lastLog;
-            } else {
-                this._lastLog = lastLog;
-            }
-
-            // cli-progress doesn't actually support newlines in the status, so instead
-            // do shenanigans to move the cursor, print the last log line and
-            // then the progress bar
-            readline.moveCursor(process.stdout, 0, -1);
-            readline.clearLine(process.stdout, 0);
-            process.stdout.write('   ' + lastLog + '\n');
-            readline.moveCursor(process.stdout, 0, 1)
-
+        else if (this.phase === 'EXPORT') {
             this.progressIndicator.update(progress?.threadsProcessed ?? null);
         }
     }
@@ -102,15 +122,15 @@ class App {
      */
     phaseFunc(phase, prevPhase) {
         this.phase = phase;
-        if(phase === 'START') {
+        if (phase === 'START') {
             process.stdout.write(colors.gray(`Quip API: ${this.quipProcessor.quipService.apiURL}`));
             process.stdout.write('\n');
         }
 
-        if (phase === 'ANALYSIS'){
+        if (phase === 'ANALYSIS') {
             process.stdout.write('\n');
             process.stdout.write(colors.cyan('Analysing folders...'));
-            process.stdout.write('\n');
+            process.stdout.write('\n\n');
 
             this.spinnerIndicator.setSpinnerDelay(80);
             this.spinnerIndicator.setSpinnerString("|/-\\");
@@ -118,13 +138,13 @@ class App {
             this.spinnerIndicator.start();
         }
 
-        if(prevPhase === 'ANALYSIS') {
+        if (prevPhase === 'ANALYSIS') {
             this.spinnerIndicator.onTick(`    read ${this.quipProcessor.foldersTotal} folder(s) | ${this.quipProcessor.threadsTotal} thread(s)`);
             this.spinnerIndicator.stop();
             process.stdout.write('\n');
         }
 
-        if(phase === 'EXPORT') {
+        if (phase === 'EXPORT') {
             process.stdout.write('\n');
             process.stdout.write(colors.cyan('Exporting...'));
             process.stdout.write('\n\n');
@@ -132,7 +152,7 @@ class App {
             this.progressIndicator.start(this.quipProcessor.threadsTotal, 0);
         }
 
-        if(prevPhase === 'EXPORT') {
+        if (prevPhase === 'EXPORT') {
             this.progressIndicator.stop();
             process.stdout.write('\n');
         }
@@ -154,7 +174,7 @@ class App {
         //current folder as destination, if not set
         this.desinationFolder = (this.cliArguments.destination || process.cwd());
 
-        if(this.cliArguments.debug) {
+        if (this.cliArguments.debug) {
             this.Logger = new PinoLogger(
                 PinoLogger.LEVELS.DEBUG,
                 `${this.desinationFolder}/export.log`,
@@ -168,11 +188,11 @@ class App {
 
         console.log(`Quip-Export v${versionInfo.localVersion}`);
 
-        if(versionInfo.localOutdate) {
+        if (versionInfo.localOutdate) {
             utils.cliBox(`!!!! A new version of Quip-Export (v${versionInfo.remoteVersion}) is available.`);
         }
 
-        if(this.cliArguments['comments'] && this.cliArguments['docx']) {
+        if (this.cliArguments['comments'] && this.cliArguments['docx']) {
             console.log('Docx export: comments option will be ignored.');
         }
 
@@ -180,7 +200,7 @@ class App {
         const quipService = new QuipService(this.cliArguments.token, this.cliArguments['base-url']);
         quipService.setLogger(this.Logger);
 
-        if(!await quipService.checkUser()) {
+        if (!await quipService.checkUser()) {
             console.log(colors.red('ERROR: Token is wrong or expired.'));
             console.log(colors.blue(`Visit: https://${this.cliArguments['base-url']}/dev/token to generate a token.`));
             return;
@@ -189,14 +209,14 @@ class App {
         console.log(`Destination folder: ${this.desinationFolder}`);
 
         //activate zip
-        if(this.cliArguments.zip) {
+        if (this.cliArguments.zip) {
             this.zip = new JSZip();
         }
 
         this.quipProcessor = new QuipProcessor(this.cliArguments.token, this.fileSaver.bind(this), this.progressFunc.bind(this), this.phaseFunc.bind(this),
             {
                 documentTemplate,
-                documentCSS: this.cliArguments['embedded-styles']? documentCSS : '',
+                documentCSS: this.cliArguments['embedded-styles'] ? documentCSS : '',
                 embeddedImages: this.cliArguments['embedded-images'],
                 comments: this.cliArguments['comments'],
                 docx: this.cliArguments['docx']
@@ -204,8 +224,8 @@ class App {
 
         this.quipProcessor.setLogger(this.Logger);
 
-        if(!this.cliArguments['embedded-styles'] && !this.cliArguments['docx']) {
-            if(this.cliArguments.zip) {
+        if (!this.cliArguments['embedded-styles'] && !this.cliArguments['docx']) {
+            if (this.cliArguments.zip) {
                 this.zip.file('document.css', documentCSS);
             } else {
                 utils.writeTextFile(path.join(this.desinationFolder, "quip-export", 'document.css'), documentCSS);
@@ -222,7 +242,7 @@ class App {
             //'NBaAOAhFXJJ' //React
         ];
 
-        if(this.cliArguments['folders']) {
+        if (this.cliArguments['folders']) {
             foldersToExport = this.cliArguments['folders'];
         }
 
@@ -237,9 +257,9 @@ class App {
 
         console.log(`Export duration: ${durationStr}`);
 
-        if(this.cliArguments.zip) {
+        if (this.cliArguments.zip) {
             //save zip file
-            const content = await this.zip.generateAsync({type: "nodebuffer", compression: "DEFLATE"});
+            const content = await this.zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
             await fs.writeFile(path.join(this.desinationFolder, 'quip-export.zip'), content, () => {
                 console.log("Zip-file has been saved: ", path.join(this.desinationFolder, 'quip-export.zip'));
             });
@@ -247,4 +267,4 @@ class App {
     }
 }
 
-module.exports = {App, documentTemplate, documentCSS};
+module.exports = { App, documentTemplate, documentCSS };
