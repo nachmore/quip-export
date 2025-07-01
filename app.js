@@ -5,6 +5,7 @@ const cliProgress = require('cli-progress');
 const JSZip = require('jszip');
 const fs = require('fs');
 const moment = require('moment');
+const readline = require('readline');
 
 //PinoLogger implements LoggerAdapter-Interface
 //It is possible to use another logger instead of PinoLogger
@@ -28,7 +29,7 @@ class App {
         this.quipProcessor;
         this.spinnerIndicator = new Spinner(' %s  read 0 folder(s) | 0 thread(s)');
         this.progressIndicator = new cliProgress.Bar({
-            format: '   {lastLog}\n|{bar}| {percentage}% | {value}/{total} threads | ETA: {eta_formatted}',
+            format: '   |{bar}| {percentage}% | {value}/{total} threads | ETA: {eta_formatted}',
             barCompleteChar: '\u2588',
             barIncompleteChar: '\u2591',
             hideCursor: false
@@ -62,20 +63,32 @@ class App {
         this.progressFunc(null, log);
     }
 
+    _lastLog = '';
+
     /*
     callback-function for progress indication
     */
-    progressFunc(progress, lastLog = '') {
+    progressFunc(progress, lastLog = null) {
         if(this.phase === 'ANALYSIS') {
-            this.spinnerIndicator.text = ` ${lastLog}\n %s  read ${progress.readFolders} folder(s) | ${progress.readThreads} thread(s)`;
+            this.spinnerIndicator.text = ` %s  read ${progress.readFolders} folder(s) | ${progress.readThreads} thread(s)`;
         }
         else if(this.phase === 'EXPORT') {
-            this.progressIndicator.update(
-                progress ? progress.threadsProcessed : null,
-                {
-                    lastLog: lastLog
-                }
-            );
+
+            if (!lastLog) {
+                lastLog = this._lastLog;
+            } else {
+                this._lastLog = lastLog;
+            }
+
+            // cli-progress doesn't actually support newlines in the status, so instead
+            // do shenanigans to move the cursor, print the last log line and
+            // then the progress bar
+            readline.moveCursor(process.stdout, 0, -1);
+            readline.clearLine(process.stdout, 0);
+            process.stdout.write('   ' + lastLog + '\n');
+            readline.moveCursor(process.stdout, 0, 1)
+
+            this.progressIndicator.update(progress?.threadsProcessed ?? null);
         }
     }
 
@@ -114,7 +127,7 @@ class App {
         if(phase === 'EXPORT') {
             process.stdout.write('\n');
             process.stdout.write(colors.cyan('Exporting...'));
-            process.stdout.write('\n');
+            process.stdout.write('\n\n');
 
             this.progressIndicator.start(this.quipProcessor.threadsTotal, 0);
         }
