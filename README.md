@@ -2,8 +2,10 @@
 
 This adds:
 
-1. Support for custom Quip URLs so that you can export from something like `quip-acme.com` instead of just `quip.com`.
-2. Miscellaneous robustness checks / improvements for throttling cases
+1. New arg `--base-url`: Support for custom Quip URLs so that you can export from something like `quip-acme.com` instead of just `quip.com`.
+2. New arg `--lock`: Support for locking Quip docs after export
+3. New arg `--title-prefix`: Support adding a prefix to a Quip doc to indicate that it has been exported
+4. Miscellaneous robustness checks / improvements for throttling cases
 
 
 ---

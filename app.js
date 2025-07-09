@@ -220,7 +220,8 @@ class App {
                 embeddedImages: this.cliArguments['embedded-images'],
                 comments: this.cliArguments['comments'],
                 docx: this.cliArguments['docx'],
-                lock: this.cliArguments['lock']
+                lock: this.cliArguments['lock'],
+                titlePrefix: this.cliArguments['title-prefix'],
             }, this.cliArguments['base-url']);
 
         this.quipProcessor.setLogger(this.Logger);

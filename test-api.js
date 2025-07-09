@@ -42,14 +42,24 @@ async function test() {
         console.log('Thread:', thread);
 
         // Example: Lock a thread
-        console.log('\nLocking thread...');
-        const lockResult = await quipService.lockThread(threadId);
-        console.log('Lock result:', lockResult);
+        // console.log('\nLocking thread...');
+        // const lockResult = await quipService.lockThread(threadId);
+        // console.log('Lock result:', lockResult);
 
         // Example: Update thread title
-        // console.log('\nUpdating thread...');
-        // const updateResult = await quipService.updateThread(threadId, { title: 'New Title' });
-        // console.log('Update result:', updateResult);
+
+        // find the ID of the first H1 in thread.html
+        console.log('\nUpdating thread title...');
+        const h1Match = thread.html.match(/<h1[^>]*id\s*=\s*["']([^"']*)["'][^>]*>/i);
+        const sectionId = h1Match ? h1Match[1] : null;
+
+        const newTitle = '[Exported] ' + thread.thread.title;
+
+        console.log(`\tSection Id: ${sectionId}`);
+        console.log(`\tNew Title: ${newTitle}`);
+
+        const updateResult = await quipService.updateThreadSection(threadId, sectionId, newTitle);
+        console.log('Update result:', updateResult);
 
     } catch (error) {
         console.error('Error:', error);
