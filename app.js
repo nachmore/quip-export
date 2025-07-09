@@ -219,7 +219,8 @@ class App {
                 documentCSS: this.cliArguments['embedded-styles'] ? documentCSS : '',
                 embeddedImages: this.cliArguments['embedded-images'],
                 comments: this.cliArguments['comments'],
-                docx: this.cliArguments['docx']
+                docx: this.cliArguments['docx'],
+                lock: this.cliArguments['lock']
             }, this.cliArguments['base-url']);
 
         this.quipProcessor.setLogger(this.Logger);
