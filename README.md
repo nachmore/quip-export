@@ -5,8 +5,18 @@ This adds:
 1. New arg `--base-url`: Support for custom Quip URLs so that you can export from something like `quip-acme.com` instead of just `quip.com`.
 2. New arg `--lock`: Support for locking Quip docs after export
 3. New arg `--title-prefix`: Support adding a prefix to a Quip doc to indicate that it has been exported
+4. New arg `--html`: When combined with `--docx`, supports exporting html at the same time as docx
 4. Miscellaneous robustness checks / improvements for throttling cases
 
+Sample use case:
+
+```
+./quip-export.js --base-url quip-acme.com --debug -t 'ZlZKOU1BNnZkZng=|1784083315|hzPseHShUT0h5xvUSQwOy9GsRXoDFwKqg6Y5lwW483g=' --embedded-styles --embedded-images --comments --docx --html --lock --title-prefix '[Migrated to NEW]' --folders 'oneWOR0b0wae'
+```
+
+This will export both docx and html versions (with styles embedded), including comments in the html files. It will also lock the files for editing after export, and add a prefix to the document title that indicates visually to people that you have exported the files and migrated them to wherever they have gone.
+
+**⚠️ Note:** There is a bug in Quip that prevents spreadsheet titles from updating when using the API. They will still be locked if `--lock` is used.
 
 ---
 
