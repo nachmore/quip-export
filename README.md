@@ -11,7 +11,7 @@ This adds:
 Sample use case:
 
 ```
-./quip-export.js --base-url quip-acme.com --debug -t 'ZlZKOU1BNnZkZng=|1784083315|hzPseHShUT0h5xvUSQwOy9GsRXoDFwKqg6Y5lwW483g=' --embedded-styles --embedded-images --comments --docx --html --lock --title-prefix '[Migrated to NEW]' --folders 'oneWOR0b0wae'
+./quip-export.js --base-url quip-acme.com --debug -t '[YOUR TOKEN]' --embedded-styles --embedded-images --comments --docx --html --lock --title-prefix '[Migrated to NEW]' --folders '[FOLDER_ID]'
 ```
 
 This will export both docx and html versions (with styles embedded), including comments in the html files. It will also lock the files for editing after export, and add a prefix to the document title that indicates visually to people that you have exported the files and migrated them to wherever they have gone.
