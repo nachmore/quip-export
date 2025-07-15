@@ -193,7 +193,7 @@ class App {
         }
 
         if (this.cliArguments['comments'] && this.cliArguments['docx']) {
-            console.log('Docx export: comments option will be ignored.');
+            console.log('Docx export: comments are not supported for docx/xlsx exports');
         }
 
         //Token verification
@@ -220,13 +220,16 @@ class App {
                 embeddedImages: this.cliArguments['embedded-images'],
                 comments: this.cliArguments['comments'],
                 docx: this.cliArguments['docx'],
+                html: this.cliArguments['html'],
                 lock: this.cliArguments['lock'],
                 titlePrefix: this.cliArguments['title-prefix'],
             }, this.cliArguments['base-url']);
 
         this.quipProcessor.setLogger(this.Logger);
 
-        if (!this.cliArguments['embedded-styles'] && !this.cliArguments['docx']) {
+        // Create CSS file when HTML export is enabled and styles are not embedded
+        const shouldExportHtml = this.cliArguments['html'] || (!this.cliArguments['docx'] && !this.cliArguments['html']);
+        if (!this.cliArguments['embedded-styles'] && shouldExportHtml) {
             if (this.cliArguments.zip) {
                 this.zip.file('document.css', documentCSS);
             } else {
